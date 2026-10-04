@@ -31,22 +31,33 @@ It wrote the code, ran away, and now the game is unplayable.
 
 ## 📸 Demo Walkthrough
 
-Describe your fixed game in numbered steps so a reader can follow along without watching a video:
+Secret number is 53 (Normal difficulty, range 1 to 100).
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+1. User enters a guess of 40. The game returns "Too Low" with the hint "Go HIGHER!", and the score drops to -5.
+2. User enters a guess of 70. The game returns "Too High" with the hint "Go LOWER!", and the score drops to -10.
+3. User enters a guess of 53. The game returns "Correct!", the app shows "You won! The secret was 53. Final score: 30".
+4. User clicks "New Game". A new secret is picked (respecting the selected difficulty's range), the guess history clears, the guess box is blanked, and the win message disappears so the game is immediately playable again. (Note: score is not reset by "New Game" and carries over between games.)
 
 **Screenshot** *(optional)*: <!-- Insert a screenshot of your fixed, winning game here -->
+![alt text](image.png)
 
 ## 🧪 Test Results
 
 ```
 # Paste your pytest output here, e.g.:
-# pytest tests/
-# ========================= X passed in 0.XXs =========================
+
+
+(.venv) PS C:\Users\sinha\Desktop\AI110\ai110-module1show-gameglitchinvestigator-starter> python -m pytest
+==================================================== test session starts ====================================================
+platform win32 -- Python 3.14.7, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\sinha\Desktop\AI110\ai110-module1show-gameglitchinvestigator-starter
+plugins: anyio-4.15.1
+collected 10 items                                                                                                           
+
+tests\test_game_logic.py .......                                                                                       [ 70%]
+tests\test_new_game_reset.py ...                                                                                       [100%]
+
+==================================================== 10 passed in 3.13s =====================================================
 ```
 
 ## 🚀 Stretch Features

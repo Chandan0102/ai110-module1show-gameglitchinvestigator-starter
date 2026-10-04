@@ -18,6 +18,8 @@ Document at least 3 bugs you found. Add rows as needed.
 | Click on "New Game"| game reset | the last message contineus to display | no error. Location: App.py, New Game button handler - st.session_state.status is never reset back to "playing" |
 | Change Difficulty to "Hard"| Make a guess to show "Guess a number between 1 and 50"|Make a guess shows "Guess a number between 1 and 100" | no error. Location: App.py - the st.info() message text is hardcoded to "1 and 100" instead of using the low/high values that get_range_for_difficulty already returns correctly |
 
+*Update: bug 3 above is now fixed too, as a side effect of rewriting that line during the Enhanced UI stretch feature work (see README Stretch Features).*
+
 ---
 
 ## 2. How did you use AI as a teammate?

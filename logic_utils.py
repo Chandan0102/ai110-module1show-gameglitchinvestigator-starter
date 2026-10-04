@@ -88,6 +88,38 @@ def check_guess(guess, secret):
         return "Too Low", "📈 Go HIGHER!"
 
 
+def get_proximity_hint(guess: int, secret: int, low: int, high: int) -> str:
+    """
+    Return a Hot/Cold style proximity label for how close a guess is.
+
+    Distance is measured relative to the size of the difficulty's secret
+    range, so "hot" means the same thing on Easy (1-20) as it does on
+    Normal (1-100).
+
+    Args:
+        guess: The player's guess.
+        secret: The secret number (always compared as an int).
+        low: The low end of the difficulty's range.
+        high: The high end of the difficulty's range.
+
+    Returns:
+        An emoji-prefixed proximity label, from "Burning Hot" (closest)
+        to "Freezing Cold" (farthest).
+    """
+    span = max(high - low, 1)
+    ratio = abs(guess - secret) / span
+
+    if ratio <= 0.05:
+        return "🔥🔥🔥 Burning Hot"
+    if ratio <= 0.15:
+        return "🔥 Hot"
+    if ratio <= 0.35:
+        return "🌤️ Warm"
+    if ratio <= 0.6:
+        return "❄️ Cool"
+    return "🥶 Freezing Cold"
+
+
 def update_score(current_score: int, outcome: str, attempt_number: int):
     """
     Apply one guess's outcome to the running score.

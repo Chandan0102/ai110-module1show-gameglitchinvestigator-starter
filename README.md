@@ -30,11 +30,12 @@ It wrote the code, ran away, and now the game is unplayable.
 **Bugs found:**
 1. The "Too High"/"Too Low" hint messages were reversed in `check_guess` (a too-high guess told you to go higher, not lower), in both the normal comparison and the string-secret fallback branch used on alternating attempts.
 2. Clicking "New Game" didn't reset the game: `status` was never reset back to `"playing"`, so the previous win/loss message kept blocking the page; `history` was never cleared; and the guess input box kept its last typed value.
-3. The "Guess a number between..." message is hardcoded to always say "1 and 100," even on Easy/Hard difficulty, instead of using the `low`/`high` values `get_range_for_difficulty` already returns correctly. (Documented here but not yet fixed.)
+3. The "Guess a number between..." message was hardcoded to always say "1 and 100," even on Easy/Hard difficulty, instead of using the `low`/`high` values `get_range_for_difficulty` already returns correctly.
 
 **Fixes applied:**
 - Swapped the hint messages in `check_guess` in both code paths, and refactored the function (along with the other game logic) out of `app.py` into `logic_utils.py` so it could be unit tested directly.
 - Reset `status` and `history` on New Game, and added a `game_id` counter baked into the guess input's widget key so New Game always produces a fresh, empty input box instead of reusing a stale one.
+- Rewrote the range message to use `low`/`high` instead of a hardcoded "1 and 100" (this was a side effect of the Enhanced UI work below, where that line was rewritten anyway).
 
 ## 📸 Demo Walkthrough
 
@@ -85,3 +86,5 @@ tests/test_parse_guess_edge_cases.py::test_parse_guess_rejects_whitespace_only_s
 **Feature Expansion via Agent Mode:** Added a Guess History sidebar (`app.py`) that lists every guess made this game, most recent first, with an icon and outcome per guess (e.g. `🎉 #4: 55 -> Win`), instead of guesses only being visible inside the hidden "Developer Debug Info" expander. It clears correctly on "New Game," same as the rest of the game state. Full agent workflow (task given, steps taken, manual verification) documented in `ai_interactions.md`.
 
 **Professional Documentation and Style:** Ran `flake8` against `logic_utils.py`, `app.py`, and `tests/`; it flagged 4 over-long lines in `app.py`, all now wrapped and fixed (`flake8` is clean on a second run). Every function in `logic_utils.py` now has a full Args/Returns docstring instead of a one-line summary. Prompt used, before/after linting output, and a list of the changes applied are documented in `ai_interactions.md`.
+
+**Enhanced Game UI and Formatting:** Added a Hot/Cold proximity hint (`get_proximity_hint` in `logic_utils.py`) shown under the existing Too High/Too Low hint, e.g. "Proximity: 🔥 Hot," scaled to the selected difficulty's range so "hot" means the same thing on Easy as on Hard. Also replaced the plain "Attempts left: N" text in `app.py` with `st.metric` tiles for Score, Attempts Left, and Difficulty, and fixed the range caption to use the actual `low`/`high` for the selected difficulty instead of a hardcoded "1 and 100" (this also fixed bug #3 from the bug table above). Core game logic (scoring, win/loss detection) is unchanged.

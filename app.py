@@ -6,6 +6,7 @@ from logic_utils import (
     parse_guess,
     check_guess,
     update_score,
+    get_proximity_hint,
 )
 
 st.set_page_config(page_title="Glitchy Guesser", page_icon="🎮")
@@ -53,10 +54,15 @@ if "game_id" not in st.session_state:
 
 st.subheader("Make a guess")
 
-st.info(
-    f"Guess a number between 1 and 100. "
-    f"Attempts left: {attempt_limit - st.session_state.attempts}"
-)
+st.caption(f"Guess a number between {low} and {high}.")
+
+metric_col1, metric_col2, metric_col3 = st.columns(3)
+with metric_col1:
+    st.metric("Score", st.session_state.score)
+with metric_col2:
+    st.metric("Attempts Left", attempt_limit - st.session_state.attempts)
+with metric_col3:
+    st.metric("Difficulty", difficulty)
 
 with st.expander("Developer Debug Info"):
     st.write("Secret:", st.session_state.secret)
@@ -117,6 +123,11 @@ if submit:
 
         if show_hint:
             st.warning(message)
+            if outcome != "Win":
+                proximity = get_proximity_hint(
+                    guess_int, st.session_state.secret, low, high
+                )
+                st.caption(f"Proximity: {proximity}")
 
         st.session_state.score = update_score(
             current_score=st.session_state.score,

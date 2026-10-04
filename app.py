@@ -99,17 +99,21 @@ if submit:
     ok, guess_int, err = parse_guess(raw_guess)
 
     if not ok:
-        st.session_state.history.append(raw_guess)
+        st.session_state.history.append(
+            {"guess": raw_guess, "outcome": "Invalid"}
+        )
         st.error(err)
     else:
-        st.session_state.history.append(guess_int)
-
         if st.session_state.attempts % 2 == 0:
             secret = str(st.session_state.secret)
         else:
             secret = st.session_state.secret
 
         outcome, message = check_guess(guess_int, secret)
+
+        st.session_state.history.append(
+            {"guess": guess_int, "outcome": outcome}
+        )
 
         if show_hint:
             st.warning(message)
@@ -135,6 +139,26 @@ if submit:
                     f"The secret was {st.session_state.secret}. "
                     f"Score: {st.session_state.score}"
                 )
+
+st.sidebar.divider()
+st.sidebar.subheader("📜 Guess History")
+
+HISTORY_ICONS = {
+    "Win": "🎉",
+    "Too High": "📉",
+    "Too Low": "📈",
+    "Invalid": "⚠️",
+}
+
+if st.session_state.history:
+    numbered_history = list(enumerate(st.session_state.history, start=1))
+    for position, entry in reversed(numbered_history):
+        icon = HISTORY_ICONS.get(entry["outcome"], "")
+        st.sidebar.write(
+            f"{icon} #{position}: {entry['guess']} -> {entry['outcome']}"
+        )
+else:
+    st.sidebar.caption("No guesses yet this game.")
 
 st.divider()
 st.caption("Built by an AI that claims this code is production-ready.")

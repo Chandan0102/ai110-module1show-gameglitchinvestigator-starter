@@ -14,9 +14,9 @@ Document at least 3 bugs you found. Add rows as needed.
 
 | Input | Expected Behavior | Actual Behavior | Console Output / Error |
 |-------|-------------------|-----------------|------------------------|
-| Secret 31, input 55| GO LOWER | GO Higher| no error| Location: App.py   function: check_guess |
-| Click on "New Game"| game reset | the last message contineus to display | no error| Location: App.py |
-| Change Difficulty to "Hard"| Make a guess to show "Guess a number between 1 and 50"|Make a guess shows "Guess a number between 1 and 100" | no error | Location : App.py  function: get_range_for_difficulty |
+| Secret 31, input 55| GO LOWER | GO Higher| no error. Location: App.py, function: check_guess |
+| Click on "New Game"| game reset | the last message contineus to display | no error. Location: App.py, New Game button handler - st.session_state.status is never reset back to "playing" |
+| Change Difficulty to "Hard"| Make a guess to show "Guess a number between 1 and 50"|Make a guess shows "Guess a number between 1 and 100" | no error. Location: App.py - the st.info() message text is hardcoded to "1 and 100" instead of using the low/high values that get_range_for_difficulty already returns correctly |
 
 ---
 
@@ -31,9 +31,11 @@ When guess > secret (the guess is too high), it returns "📈 Go HIGHER!" — bu
 
 Fix — swap the messages (keep the outcome labels "Too High"/"Too Low" as-is, since those are correct).
 
-I accepted above suggestion.
+I accepted above suggestion. I verified it by running the pytest suite after Claude refactored check_guess into logic_utils.py (all tests asserting the hint direction passed) and by manually playing the game to confirm the hints pointed the right way.
 
 - Give one example of an AI suggestion you did not accept as written (including what the AI suggested, why you rejected or changed it, and how you verified your version). It does not have to be a suggestion that was wrong: over-engineered, out of scope, harder to read, or a poor fit for this codebase all count.
+
+When pytest wasn't found in my environment, Claude's first move was to try installing pytest globally with pip (pip install --quiet pytest). I did not accept that as written and stopped the tool call, because the project already had a .venv virtual environment and installing a package globally could have left me testing against a different pytest/Streamlit version than the one the project actually uses. I told Claude there was a .venv, and it switched to running tests with .venv/Scripts/python -m pytest instead. I verified my version worked by confirming the tests ran and passed using that exact command.
 
 ---
 

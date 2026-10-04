@@ -23,8 +23,9 @@ def test_parse_guess_rejects_none_input():
 
 
 def test_parse_guess_accepts_negative_numbers():
-    # parse_guess does not reject negative numbers - a negative guess is
-    # parsed as a valid int and left for check_guess to report as "Too Low".
+    # parse_guess itself has no range awareness and parses any valid int,
+    # negative or not; app.py is responsible for range-checking the result
+    # separately via validate_range (see test_input_validation.py).
     ok, value, err = parse_guess("-5")
     assert ok is True
     assert value == -5

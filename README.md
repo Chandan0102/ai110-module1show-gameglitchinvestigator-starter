@@ -31,11 +31,14 @@ It wrote the code, ran away, and now the game is unplayable.
 1. The "Too High"/"Too Low" hint messages were reversed in `check_guess` (a too-high guess told you to go higher, not lower), in both the normal comparison and the string-secret fallback branch used on alternating attempts.
 2. Clicking "New Game" didn't reset the game: `status` was never reset back to `"playing"`, so the previous win/loss message kept blocking the page; `history` was never cleared; and the guess input box kept its last typed value.
 3. The "Guess a number between..." message was hardcoded to always say "1 and 100," even on Easy/Hard difficulty, instead of using the `low`/`high` values `get_range_for_difficulty` already returns correctly.
+4. Switching the Difficulty dropdown mid-session never regenerated the secret number: `st.session_state.secret` was only ever set once (on the very first run, using whichever difficulty was selected then). Switching e.g. Normal -> Easy kept the old secret, which could easily land outside the new, smaller range (reported case: secret 83 left over on Easy's 1-20 range).
 
 **Fixes applied:**
 - Swapped the hint messages in `check_guess` in both code paths, and refactored the function (along with the other game logic) out of `app.py` into `logic_utils.py` so it could be unit tested directly.
 - Reset `status` and `history` on New Game, and added a `game_id` counter baked into the guess input's widget key so New Game always produces a fresh, empty input box instead of reusing a stale one.
 - Rewrote the range message to use `low`/`high` instead of a hardcoded "1 and 100" (this was a side effect of the Enhanced UI work below, where that line was rewritten anyway).
+- Added input validation (`validate_range` in `logic_utils.py`): a guess that's non-numeric or outside the selected difficulty's range is now rejected with a clear message ("Enter a number between X and Y." / "That is not a number.") and does **not** consume an attempt or get added to the guess history.
+- Added difficulty-change detection in `app.py`: whenever the selected difficulty differs from the one tracked in `st.session_state.difficulty`, the game fully resets (new in-range secret, attempts, history, status, and a fresh guess input), the same way "New Game" does.
 
 ## 📸 Demo Walkthrough
 
@@ -57,26 +60,37 @@ Secret number is 53 (Normal difficulty, range 1 to 100).
 platform win32 -- Python 3.14.7, pytest-9.1.1, pluggy-1.6.0
 rootdir: C:\Users\sinha\Desktop\AI110\ai110-module1show-gameglitchinvestigator-starter
 plugins: anyio-4.15.1
-collected 16 items
+collected 27 items
 
-tests/test_game_logic.py::test_winning_guess PASSED                      [  6%]
-tests/test_game_logic.py::test_guess_too_high_outcome PASSED             [ 12%]
-tests/test_game_logic.py::test_guess_too_low_outcome PASSED              [ 18%]
-tests/test_game_logic.py::test_guess_too_high_message_tells_player_to_go_lower PASSED [ 25%]
-tests/test_game_logic.py::test_guess_too_low_message_tells_player_to_go_higher PASSED [ 31%]
+tests/test_difficulty_switch.py::test_secret_regenerates_in_range_when_switching_to_easy PASSED [  3%]
+tests/test_difficulty_switch.py::test_secret_regenerates_in_range_when_switching_to_hard PASSED [  7%]
+tests/test_difficulty_switch.py::test_switching_difficulty_resets_attempts_and_history PASSED [ 11%]
+tests/test_difficulty_switch.py::test_switching_difficulty_updates_the_range_caption PASSED [ 14%]
+tests/test_game_logic.py::test_winning_guess PASSED                      [ 18%]
+tests/test_game_logic.py::test_guess_too_high_outcome PASSED             [ 22%]
+tests/test_game_logic.py::test_guess_too_low_outcome PASSED              [ 25%]
+tests/test_game_logic.py::test_guess_too_high_message_tells_player_to_go_lower PASSED [ 29%]
+tests/test_game_logic.py::test_guess_too_low_message_tells_player_to_go_higher PASSED [ 33%]
 tests/test_game_logic.py::test_guess_too_high_message_matches_outcome_for_string_secret PASSED [ 37%]
-tests/test_game_logic.py::test_guess_too_low_message_matches_outcome_for_string_secret PASSED [ 43%]
-tests/test_new_game_reset.py::test_new_game_resets_status_after_a_win PASSED [ 50%]
-tests/test_new_game_reset.py::test_new_game_clears_history PASSED        [ 56%]
-tests/test_new_game_reset.py::test_new_game_clears_the_guess_input_box PASSED [ 62%]
-tests/test_parse_guess_edge_cases.py::test_parse_guess_rejects_non_numeric_string PASSED [ 68%]
-tests/test_parse_guess_edge_cases.py::test_parse_guess_rejects_empty_string PASSED [ 75%]
-tests/test_parse_guess_edge_cases.py::test_parse_guess_rejects_none_input PASSED [ 81%]
-tests/test_parse_guess_edge_cases.py::test_parse_guess_accepts_negative_numbers PASSED [ 87%]
-tests/test_parse_guess_edge_cases.py::test_parse_guess_truncates_decimal_strings PASSED [ 93%]
+tests/test_game_logic.py::test_guess_too_low_message_matches_outcome_for_string_secret PASSED [ 40%]
+tests/test_input_validation.py::test_validate_range_accepts_value_within_range PASSED [ 44%]
+tests/test_input_validation.py::test_validate_range_accepts_boundary_values PASSED [ 48%]
+tests/test_input_validation.py::test_validate_range_rejects_value_above_high PASSED [ 51%]
+tests/test_input_validation.py::test_validate_range_rejects_value_below_low PASSED [ 55%]
+tests/test_input_validation.py::test_out_of_range_guess_does_not_count_as_an_attempt_or_history PASSED [ 59%]
+tests/test_input_validation.py::test_non_numeric_guess_does_not_count_as_an_attempt_or_history PASSED [ 62%]
+tests/test_input_validation.py::test_valid_guess_still_counts_as_an_attempt_and_history PASSED [ 66%]
+tests/test_new_game_reset.py::test_new_game_resets_status_after_a_win PASSED [ 70%]
+tests/test_new_game_reset.py::test_new_game_clears_history PASSED        [ 74%]
+tests/test_new_game_reset.py::test_new_game_clears_the_guess_input_box PASSED [ 77%]
+tests/test_parse_guess_edge_cases.py::test_parse_guess_rejects_non_numeric_string PASSED [ 81%]
+tests/test_parse_guess_edge_cases.py::test_parse_guess_rejects_empty_string PASSED [ 85%]
+tests/test_parse_guess_edge_cases.py::test_parse_guess_rejects_none_input PASSED [ 88%]
+tests/test_parse_guess_edge_cases.py::test_parse_guess_accepts_negative_numbers PASSED [ 92%]
+tests/test_parse_guess_edge_cases.py::test_parse_guess_truncates_decimal_strings PASSED [ 96%]
 tests/test_parse_guess_edge_cases.py::test_parse_guess_rejects_whitespace_only_string PASSED [100%]
 
-============================= 16 passed in 2.85s ==============================
+============================= 27 passed in 5.60s ==============================
 ```
 
 ## 🚀 Stretch Features

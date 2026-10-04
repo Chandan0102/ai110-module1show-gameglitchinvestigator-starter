@@ -7,6 +7,7 @@ import streamlit as st
 from logic_utils import (
     get_range_for_difficulty,
     parse_guess,
+    validate_range,
     check_guess,
     update_score,
     get_proximity_hint,
@@ -54,6 +55,18 @@ if "history" not in st.session_state:
 
 if "game_id" not in st.session_state:
     st.session_state.game_id = 0
+
+if "difficulty" not in st.session_state:
+    st.session_state.difficulty = difficulty
+
+if st.session_state.difficulty != difficulty:
+    st.session_state.difficulty = difficulty
+    st.session_state.attempts = 0
+    st.session_state.secret = random.randint(low, high)
+    st.session_state.status = "playing"
+    st.session_state.history = []
+    st.session_state.game_id += 1
+    st.rerun()
 
 st.subheader("Make a guess")
 
@@ -103,16 +116,18 @@ if st.session_state.status != "playing":
     st.stop()
 
 if submit:
-    st.session_state.attempts += 1
-
     ok, guess_int, err = parse_guess(raw_guess)
 
+    if ok:
+        ok, range_err = validate_range(guess_int, low, high)
+        if not ok:
+            err = range_err
+
     if not ok:
-        st.session_state.history.append(
-            {"guess": raw_guess, "outcome": "Invalid"}
-        )
         st.error(err)
     else:
+        st.session_state.attempts += 1
+
         if st.session_state.attempts % 2 == 0:
             secret = str(st.session_state.secret)
         else:
@@ -161,7 +176,6 @@ HISTORY_ICONS = {
     "Win": "🎉",
     "Too High": "📉",
     "Too Low": "📈",
-    "Invalid": "⚠️",
 }
 
 if st.session_state.history:

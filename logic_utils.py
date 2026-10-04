@@ -53,6 +53,24 @@ def parse_guess(raw: str):
     return True, value, None
 
 
+def validate_range(value: int, low: int, high: int):
+    """
+    Check whether a parsed guess falls within the secret's range.
+
+    Args:
+        value: The parsed guess (an int).
+        low: The low end of the difficulty's range.
+        high: The high end of the difficulty's range.
+
+    Returns:
+        A (ok, error_message) tuple. error_message is None when ok is
+        True, otherwise a user-facing string naming the valid range.
+    """
+    if low <= value <= high:
+        return True, None
+    return False, f"Enter a number between {low} and {high}."
+
+
 def check_guess(guess, secret):
     """
     Compare a player's guess to the secret number and report the result.

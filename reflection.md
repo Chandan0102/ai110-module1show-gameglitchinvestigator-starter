@@ -60,12 +60,15 @@ I accepted above suggestion.
 ## 4. What did you learn about Streamlit and state?
 
 - How would you explain Streamlit "reruns" and session state to a friend who has never used Streamlit?
-
+Streamlit doesn't update the page in place like a normal app. Every time you click a button or submit a form, it throws away the whole script and runs it again from top to bottom, like refreshing the page and rebuilding everything from scratch. The catch is that normal variables don't survive that refresh, so anything you want to remember between clicks (like the secret number, your score, or your guess history) has to be stored in session_state, which is a dictionary that does persist across reruns. I actually learned this the hard way with the New Game bug: I'd reset the secret number on click, but because I forgot to also reset status in session_state, the old "you won" message kept coming back on every rerun, since Streamlit was faithfully rebuilding the page but still reading that stale leftover value.
 ---
 
 ## 5. Looking ahead: your developer habits
 
 - What is one habit or strategy from this project that you want to reuse in future labs or projects?
   - This could be a testing habit, a prompting strategy, or a way you used Git.
+  The habit I want to keep is proving a test can actually fail before trusting it. When Claude wrote the New Game regression tests, it temporarily reverted my fix and reran the tests to confirm they failed against the old buggy code, then confirmed they passed again once the fix was back. That caught my attention because it's easy to write a test that looks reasonable but would pass even without the fix, which tells you nothing. I want to reuse that check in future labs: before trusting any new test, deliberately break the code it's supposed to catch and make sure the test actually screams.
 - What is one thing you would do differently next time you work with AI on a coding task?
+  Next time I'd point the AI at all the relevant files upfront instead of just the one I happened to have open. When I first asked about the reversed hint bug, I only mentioned app.py, so Claude fixed it there without knowing tests/test_game_logic.py was already importing from a separate stub file, logic_utils.py, that didn't actually implement anything yet. It took an extra clarifying question to catch that mismatch and decide to refactor the real logic into logic_utils.py instead of leaving duplicated code in two places. If I'd mentioned the stub file and the test imports from the start, we could have skipped that back-and-forth.
 - In one or two sentences, describe how this project changed the way you think about AI generated code.
+  This project made me realize AI generated code can look completely confident and reasonable while still having inverted logic or broken state resets, so I can't just read it and trust it. I now treat AI suggestions as a draft that needs a test proving it fails before the fix and passes after, not a finished answer.

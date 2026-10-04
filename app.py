@@ -1,4 +1,7 @@
 import random
+
+import altair as alt
+import pandas as pd
 import streamlit as st
 
 from logic_utils import (
@@ -170,6 +173,42 @@ if st.session_state.history:
         )
 else:
     st.sidebar.caption("No guesses yet this game.")
+
+st.divider()
+st.subheader("🔢 Numbers Guessed")
+
+numeric_guesses = [
+    entry for entry in st.session_state.history
+    if isinstance(entry["guess"], int)
+]
+
+if numeric_guesses:
+    guesses_df = pd.DataFrame(numeric_guesses)
+    OUTCOME_LABELS = {"Too Low": "Low", "Too High": "High", "Win": "Win"}
+    guesses_df["label"] = guesses_df["outcome"].map(OUTCOME_LABELS)
+    outcome_colors = alt.Scale(
+        domain=["Low", "High", "Win"],
+        range=["#1f77b4", "#d62728", "#2ca02c"],
+    )
+    points = (
+        alt.Chart(guesses_df)
+        .mark_circle(size=200)
+        .encode(
+            x=alt.X(
+                "guess:Q",
+                scale=alt.Scale(domain=[low, high]),
+                title=f"Guess range ({low} to {high})",
+            ),
+            y=alt.value(0),
+            color=alt.Color("label:N", scale=outcome_colors, title="Result"),
+            tooltip=["guess", "outcome"],
+        )
+    )
+    labels = points.mark_text(dy=-15).encode(text="guess:Q")
+    number_line = (points + labels).properties(height=120)
+    st.altair_chart(number_line, width="stretch")
+else:
+    st.caption("No guesses yet this game.")
 
 st.divider()
 st.caption("Built by an AI that claims this code is production-ready.")
